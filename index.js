@@ -1,12 +1,20 @@
 'use strict';
 
-const fs = require("fs");
 const unleash = require('unleash-server');
+const auth = require('./auth');
 
-let options = {};
-
-if (process.env.DATABASE_URL_FILE) {
-    options.databaseUrl = fs.readFileSync(process.env.DATABASE_URL_FILE, 'utf8');
-}
-
-unleash.start(options);
+unleash
+  .start({
+    databaseUrl: process.env.DATABASE_URL,
+    port: process.env.HTTP_PORT || process.env.PORT || 4242,
+    host: process.env.HTTP_HOST || 'localhost',
+    secret: process.env.SECRET,
+    enableLegacyRoutes: false,
+    adminAuthentication: 'custom',
+    preRouterHook: auth.preRouterHook,
+  })
+  .then(unleash => {
+    console.log(
+      `Unleash started on http://${unleash.app.get('host')}:${unleash.app.get('port')}`,
+    );
+  });
